@@ -28,8 +28,8 @@ with Manager() as manager:
     mpu2.start()
 
     while True:
-        print('1 ', data_1[3], data_1[4], data_1[5])
-        print('2 ', data_2[3], data_2[4], data_2[5])
+        print('1 ', data_1[0], data_1[1], data_1[2])
+        print('2 ', data_2[0], data_2[1], data_2[2])
         print(' ')
         if c.is_open():
             is_ok = c.write_single_register(0, 10)
