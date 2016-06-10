@@ -10,6 +10,7 @@ from pyModbusTCP.client import ModbusClient
 
 with Manager() as manager:
 
+    # Open a modbus client
     try:
         c = ModbusClient(host="140.116.82.50", port=7654)
     except ValueError:
@@ -19,23 +20,42 @@ with Manager() as manager:
     if not is_ok:
         c.open()
 
+    # data sampling period
     sleep_time = 0.1
 
+    # consitent define in paper
     T_alpha_a = 3.0
     T_alpha_b = 2.5
     T_omg_a = 200
     T_omg_b = 340
 
+    """
+        Accelremeter Calibration
+
+           max   |   min   |   offset   |   1g_scale
+      x_1  8210     -8110        50           8160
+      y_1  8150     -8150         0           8150
+      z_1  7900     -8500      -300           8200
+
+      x_2  8330     -8090       120           8210
+      y_2  8150     -8195       -22.5         8172.5
+      z_2  7970     -8660      -345           8315
+
+      _4g = 1 / 8192
+
+    """
     acc_offset_1 = [50, 0, -300]
     acc_offset_2 = [120, -22.5, -345]
-    acc_scale_1 = [8160, 8150, 8200]
-    acc_scale_2 = [8210, 8315, 8172.5]
+    acc_scale_1 = [8192/8160, 8192/8150, 8192/8200]
+    acc_scale_2 = [8192/8210, 8192/8315, 8192/8172.5]
     _4g = 0.0001220703125
 
+    # share data for multiprocessing
     data_1 = Array('i', 6)
     data_2 = Array('i', 6)
     lock = manager.Lock()
 
+    # start processing at address 0x68 and 0x69
     mpu1 = MPU6050_Process_1(0x68, lock, data_1)
     mpu2 = MPU6050_Process_2(0x69, lock, data_2)
 
@@ -45,43 +65,65 @@ with Manager() as manager:
     mpu2.start()
 
     while True:
+        # holding data during time interval(1s)
         alpha_a_int = []
         alpha_b_int = []
         omg_a_int = []
         omg_b_int = []
+        # get data from imu 10 time in 1s
         for _ in xrange(10):
             acc_1 = [data_1[0]-acc_offset_1[0], data_1[1]-acc_offset_1[1], data_1[2]-acc_offset_1[2]]
             acc_2 = [data_2[0]-acc_offset_2[0], data_2[1]-acc_offset_2[1], data_2[2]-acc_offset_2[2]]
             gyro_1 = [data_1[3], data_1[4], data_1[5]]
             gyro_2 = [data_2[3], data_2[4], data_2[5]]
 
+            # skip noise data
             if max(gyro_1) > 600 or min(gyro_1) < -600 or max(gyro_2) > 600 or min(gyro_2) < -600:
                 time.sleep(sleep_time)
                 continue
 
+            # scale acc data
             for i in xrange(3):
                 acc_1[i] = acc_1[i] * _4g * acc_scale_1[i]
                 acc_2[i] = acc_2[i] * _4g * acc_scale_2[i]
+            #print(acc_1, acc_2, gyro_1, gyro_2)
             alpha_a_int.append(sqrt(pow(acc_1[0],2) + pow(acc_1[1],2) + pow(acc_1[2],2)))
             alpha_b_int.append(sqrt(pow(acc_2[0],2) + pow(acc_2[1],2) + pow(acc_2[2],2)))
-            omg_a_int.append(sqrt(pow(gyro_1[3],2) + pow(gyro_1[4],2) + pow(gyro_1[5],2)))
-            omg_b_int.append(sqrt(pow(gyro_2[3],2) + pow(gyro_2[4],2) + pow(gyro_2[5],2)))
+            omg_a_int.append(sqrt(pow(gyro_1[0],2) + pow(gyro_1[1],2) + pow(gyro_1[2],2)))
+            omg_b_int.append(sqrt(pow(gyro_2[0],2) + pow(gyro_2[1],2) + pow(gyro_2[2],2)))
             time.sleep(sleep_time)
 
+        """
+            Monitor if people are static or dynamic during the
+            present time segment.
+        """
         if (max(alpha_a_int) - min(alpha_a_int) < 0.4 and max(alpha_b_int) - min(alpha_b_int) < 0.4 
                 and max(omg_a_int) - min(omg_a_int) < 60 and max(omg_b_int) - min(omg_b_int) < 60):
+            # static
             is_ok = c.write_single_register(1, 0)
             if not is_ok:
                 c.open()
 
-            if acos(min(acc_1[0])) > 35 and acos(min(acc_2[0])) > 35:
+            """
+                Recognize the present static posture: is it lying?
+            """
+            acc_1[0] = max(-1, min(1, acc_1[0]))
+            acc_2[0] = max(-1, min(1, acc_2[0]))
+            if acos(acc_1[0]) > 35 and acos(acc_2[0]) > 35:
+                """
+                    Determine if the transition before the present
+                    lying posture is intentional.
+                """
                 if (max(alpha_a_int) > T_alpha_a and max(alpha_b_int) > T_alpha_b 
                         and max(omg_a_int) > T_omg_a and max(omg_b_int) > T_omg_b):
                     is_ok = c.write_single_register(2, 1)
                     if not is_ok:
                         c.open()
+                    time.sleep(5)
+
 
         else:
+            # dynamic
             is_ok = c.write_single_register(1, 1)
             if not is_ok:
                 c.open()
