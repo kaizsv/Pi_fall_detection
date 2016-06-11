@@ -116,11 +116,15 @@ with Manager() as manager:
                 """
                 if (max(alpha_a_int) > T_alpha_a and max(alpha_b_int) > T_alpha_b 
                         and max(omg_a_int) > T_omg_a and max(omg_b_int) > T_omg_b):
+                    # fall
                     is_ok = c.write_single_register(2, 1)
                     if not is_ok:
                         c.open()
                     time.sleep(5)
-
+                    # reset fall
+                    is_ok = c.write_single_register(2, 0)
+                    if not is_ok:
+                        c.open()
 
         else:
             # dynamic
