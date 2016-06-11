@@ -40,5 +40,5 @@ class MPU6050_Process_1(Process):
                 self.lock.acquire()
                 self.mpu.dmpGetAccGyro(result, self.data)
                 self.lock.release()
-            time.sleep(0.1)
+            time.sleep(0.05)
                 #print(self.addr, self.data)

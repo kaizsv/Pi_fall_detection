@@ -21,7 +21,7 @@ with Manager() as manager:
         c.open()
 
     # data sampling period
-    sleep_time = 0.1
+    sleep_time = 0.05
 
     # consitent define in paper
     T_alpha_a = 3.0
@@ -71,7 +71,8 @@ with Manager() as manager:
         omg_a_int = []
         omg_b_int = []
         # get data from imu 10 time in 1s
-        for _ in xrange(10):
+        interval = int(1 / sleep_time)
+        for _ in xrange(interval):
             acc_1 = [data_1[0]-acc_offset_1[0], data_1[1]-acc_offset_1[1], data_1[2]-acc_offset_1[2]]
             acc_2 = [data_2[0]-acc_offset_2[0], data_2[1]-acc_offset_2[1], data_2[2]-acc_offset_2[2]]
             gyro_1 = [data_1[3], data_1[4], data_1[5]]
@@ -109,7 +110,10 @@ with Manager() as manager:
             """
             acc_1[0] = max(-1, min(1, acc_1[0]))
             acc_2[0] = max(-1, min(1, acc_2[0]))
-            if acos(acc_1[0]) > 35 and acos(acc_2[0]) > 35:
+            if acos(acc_1[0]) > 0.61 and acos(acc_2[0]) > 0.61:
+                is_ok = c.write_single_register(3, 1)
+                if not is_ok:
+                    c.open()
                 """
                     Determine if the transition before the present
                     lying posture is intentional.
@@ -125,6 +129,11 @@ with Manager() as manager:
                     is_ok = c.write_single_register(2, 0)
                     if not is_ok:
                         c.open()
+            else:
+                is_ok = c.write_single_register(3, 0)
+                if not is_ok:
+                    c.open()
+
 
         else:
             # dynamic
