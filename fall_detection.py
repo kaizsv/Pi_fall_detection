@@ -102,6 +102,7 @@ with Manager() as manager:
             f2 = open('B.txt', 'a')
             str2 = ''.join(str(alpha_b_int[-1]))
             f2.write(str2)
+            f2.write('\n')
             f2.close()
 
             """
