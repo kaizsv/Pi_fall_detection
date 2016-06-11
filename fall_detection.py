@@ -21,11 +21,11 @@ with Manager() as manager:
         c.open()
 
     # data sampling period
-    sleep_time = 0.05
+    sleep_time = 0.00833
 
     # consitent define in paper
-    T_alpha_a = 3.0
-    T_alpha_b = 2.5
+    T_alpha_a = 2.0
+    T_alpha_b = 1.5
     T_omg_a = 200
     T_omg_b = 340
 
@@ -94,49 +94,59 @@ with Manager() as manager:
             omg_b_int.append(sqrt(pow(gyro_2[0],2) + pow(gyro_2[1],2) + pow(gyro_2[2],2)))
             time.sleep(sleep_time)
 
-        """
-            Monitor if people are static or dynamic during the
-            present time segment.
-        """
-        if (max(alpha_a_int) - min(alpha_a_int) < 0.4 and max(alpha_b_int) - min(alpha_b_int) < 0.4 
-                and max(omg_a_int) - min(omg_a_int) < 60 and max(omg_b_int) - min(omg_b_int) < 60):
-            # static
-            is_ok = c.write_single_register(1, 0)
-            if not is_ok:
-                c.open()
+            f = open('A.txt', 'a')
+            str1 = ''.join(str(alpha_a_int[-1]))
+            f.write(str1)
+            f.write('\n')
+            f.close()
+            f2 = open('B.txt', 'a')
+            str2 = ''.join(str(alpha_b_int[-1]))
+            f2.write(str2)
+            f2.close()
 
             """
-                Recognize the present static posture: is it lying?
+                Monitor if people are static or dynamic during the
+                present time segment.
             """
-            acc_1[0] = max(-1, min(1, acc_1[0]))
-            acc_2[0] = max(-1, min(1, acc_2[0]))
-            if acos(acc_1[0]) > 0.61 and acos(acc_2[0]) > 0.61:
-                is_ok = c.write_single_register(3, 1)
+            if (max(alpha_a_int) - min(alpha_a_int) < 0.4 and max(alpha_b_int) - min(alpha_b_int) < 0.4 
+                    and max(omg_a_int) - min(omg_a_int) < 60 and max(omg_b_int) - min(omg_b_int) < 60):
+                # static
+                is_ok = c.write_single_register(1, 0)
                 if not is_ok:
                     c.open()
+
                 """
-                    Determine if the transition before the present
-                    lying posture is intentional.
+                    Recognize the present static posture: is it lying?
                 """
-                if (max(alpha_a_int) > T_alpha_a and max(alpha_b_int) > T_alpha_b 
-                        and max(omg_a_int) > T_omg_a and max(omg_b_int) > T_omg_b):
-                    # fall
-                    is_ok = c.write_single_register(2, 1)
+                acc_1[0] = max(-1, min(1, acc_1[0]))
+                acc_2[0] = max(-1, min(1, acc_2[0]))
+                if acos(acc_1[0]) > 0.61 and acos(acc_2[0]) > 0.61:
+                    is_ok = c.write_single_register(3, 1)
                     if not is_ok:
                         c.open()
-                    time.sleep(5)
-                    # reset fall
-                    is_ok = c.write_single_register(2, 0)
+                    """
+                        Determine if the transition before the present
+                        lying posture is intentional.
+                    """
+                    if (max(alpha_a_int) > T_alpha_a and max(alpha_b_int) > T_alpha_b 
+                            and max(omg_a_int) > T_omg_a and max(omg_b_int) > T_omg_b):
+                        # fall
+                        is_ok = c.write_single_register(2, 1)
+                        if not is_ok:
+                            c.open()
+                        time.sleep(5)
+                        # reset fall
+                        is_ok = c.write_single_register(2, 0)
+                        if not is_ok:
+                            c.open()
+                else:
+                    is_ok = c.write_single_register(3, 0)
                     if not is_ok:
                         c.open()
+
+
             else:
-                is_ok = c.write_single_register(3, 0)
+                # dynamic
+                is_ok = c.write_single_register(1, 1)
                 if not is_ok:
-                    c.open()
-
-
-        else:
-            # dynamic
-            is_ok = c.write_single_register(1, 1)
-            if not is_ok:
-                c.open()
+                   c.open()
