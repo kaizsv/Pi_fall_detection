@@ -30,8 +30,8 @@ with Manager() as manager:
     atexit.register(exit_handler)
 
     # data sampling period
-    sleep_time = 0.00833
-    interval = int(1 / sleep_time)
+    interval = 120
+    sleep_time = 1 / interval
     i = 0
 
     # consitent define in paper
