@@ -142,7 +142,7 @@ with Manager() as manager:
                 if not is_ok:
                    c.open()
 
-            f = open('A.txt', 'a')
+            f = open('B.txt', 'a')
             str1 = ''.join(str(alpha_a_int[-1]))
             f.write(str1)
             f.write(' ')
