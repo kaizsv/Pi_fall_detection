@@ -99,8 +99,8 @@ with Manager() as manager:
                 Monitor if people are static or dynamic during the
                 present time segment.
             """
-            if (max(alpha_a_int) - min(alpha_a_int) < 0.4 and max(alpha_b_int) - min(alpha_b_int) < 0.4 
-                    and max(omg_a_int) - min(omg_a_int) < 60 and max(omg_b_int) - min(omg_b_int) < 60):
+            if (max(alpha_a_int) - min(alpha_a_int) < 0.45 and max(alpha_b_int) - min(alpha_b_int) < 0.45 
+                    and max(omg_a_int) - min(omg_a_int) < 70 and max(omg_b_int) - min(omg_b_int) < 70):
                 # static
                 is_ok = c.write_single_register(1, 0)
                 if not is_ok:
@@ -159,6 +159,9 @@ with Manager() as manager:
             f.write(str1)
             f.write(' ')
             str1 = ''.join(str(c.read_holding_registers(3, 1)))
+            f.write(str1)
+            f.write(' ')
+            str1 = ''.join(str(c.read_holding_registers(2, 1)))
             f.write(str1)
             f.write('\n')
             f.close()
