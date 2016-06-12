@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from __future__ import division
+import atexit
 import time
 from math import *
 from multiprocessing import *
@@ -94,16 +95,20 @@ with Manager() as manager:
             omg_b_int.append(sqrt(pow(gyro_2[0],2) + pow(gyro_2[1],2) + pow(gyro_2[2],2)))
             time.sleep(sleep_time)
 
-            f = open('A.txt', 'a')
+            f = open('B.txt', 'a')
             str1 = ''.join(str(alpha_a_int[-1]))
             f.write(str1)
             f.write('\n')
+            str1 = ''.join(str(alpha_b_int[-1]))
+            f.write(str1)
+            f.write('\n')
+            str1 = ''.join(str(omg_a_int[-1]))
+            f.write(str1)
+            f.write('\n')
+            str1 = ''.join(str(omg_b_int[-1]))
+            f.write(str1)
+            f.write('\n')
             f.close()
-            f2 = open('B.txt', 'a')
-            str2 = ''.join(str(alpha_b_int[-1]))
-            f2.write(str2)
-            f2.write('\n')
-            f2.close()
 
             """
                 Monitor if people are static or dynamic during the
@@ -129,8 +134,8 @@ with Manager() as manager:
                         Determine if the transition before the present
                         lying posture is intentional.
                     """
-                    if (max(alpha_a_int) > T_alpha_a and max(alpha_b_int) > T_alpha_b 
-                            and max(omg_a_int) > T_omg_a and max(omg_b_int) > T_omg_b):
+                    if (max(alpha_a_int) > T_alpha_a or max(alpha_b_int) > T_alpha_b 
+                            or max(omg_a_int) > T_omg_a or max(omg_b_int) > T_omg_b):
                         # fall
                         is_ok = c.write_single_register(2, 1)
                         if not is_ok:
