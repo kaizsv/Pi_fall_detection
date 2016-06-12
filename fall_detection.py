@@ -22,7 +22,7 @@ with Manager() as manager:
         c.open()
 
     def exit_handler():
-        is_ok = c.write_single_register(0, 0)
+        is_ok = c.write_multiple_registers(0, [0, 0, 0, 0])
         if not is_ok:
             c.open()
 
@@ -32,7 +32,7 @@ with Manager() as manager:
     # data sampling period
     sleep_time = 0.00833
     interval = int(1 / sleep_time)
-	i = 0
+    i = 0
 
     # consitent define in paper
     T_alpha_a = 2.0
@@ -79,6 +79,13 @@ with Manager() as manager:
     mpu2.daemon = True
     mpu1.start()
     mpu2.start()
+
+    # init list
+    for _ in xrange(interval):
+        alpha_a_int.append(0)
+        alpha_b_int.append(0)
+        omg_a_int.append(0)
+        omg_b_int.append(0)
 
     while True:
 
