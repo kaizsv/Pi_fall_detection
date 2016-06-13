@@ -3,6 +3,7 @@
 from __future__ import division
 import atexit
 import time
+import sys
 from math import *
 from multiprocessing import *
 from mpu6050_process_1 import MPU6050_Process_1
@@ -22,9 +23,8 @@ with Manager() as manager:
         c.open()
 
     def exit_handler():
-        is_ok = c.write_multiple_registers(0, [0, 0, 0, 0])
-        if not is_ok:
-            c.open()
+        is_ok = c.write_multiple_registers(0, [0, 0, 0, 0, 0])
+        c.close()
 
     # registing exit handler
     atexit.register(exit_handler)
@@ -159,6 +159,10 @@ with Manager() as manager:
         i += 1
         i %= interval
         time.sleep(sleep_time)
+
+        reg = c.read_holding_registers(4, 1)
+        if reg[0] == 2:
+            sys.exit()
 
         """
         f = open('C.txt', 'a')
