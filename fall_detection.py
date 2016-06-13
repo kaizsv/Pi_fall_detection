@@ -156,10 +156,6 @@ with Manager() as manager:
             if not is_ok:
                c.open()
 
-        i += 1
-        i %= interval
-        time.sleep(sleep_time)
-
         reg = c.read_holding_registers(4, 1)
         if reg[0] == 2:
             sys.exit()
@@ -193,3 +189,7 @@ with Manager() as manager:
         f.write(str1)
         f.write('\n')
         f.close()
+
+        i += 1
+        i %= interval
+        time.sleep(sleep_time)
