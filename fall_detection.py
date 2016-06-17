@@ -88,11 +88,6 @@ with Manager() as manager:
         omg_a_int.append(0)
         omg_b_int.append(0)
 
-    var_acc_A = 0
-    var_acc_B = 0
-    var_gyro_A = 0
-    var_gyro_B = 0
-
     while True:
 
         acc_1 = [data_1[0]-acc_offset_1[0], data_1[1]-acc_offset_1[1], data_1[2]-acc_offset_1[2]]
@@ -110,33 +105,10 @@ with Manager() as manager:
             acc_1[j] = acc_1[j] * _4g * acc_scale_1[j]
             acc_2[j] = acc_2[j] * _4g * acc_scale_2[j]
         #print(acc_1, acc_2, gyro_1, gyro_2)
-        data_acc_A = sqrt(pow(acc_1[0],2) + pow(acc_1[1],2) + pow(acc_1[2],2))
-        data_acc_B = sqrt(pow(acc_2[0],2) + pow(acc_2[1],2) + pow(acc_2[2],2))
-        data_gyro_A = sqrt(pow(gyro_1[0],2) + pow(gyro_1[1],2) + pow(gyro_1[2],2))
-        data_gyro_B = sqrt(pow(gyro_2[0],2) + pow(gyro_2[1],2) + pow(gyro_2[2],2))
-
-        if ((abs(var_acc_A - data_acc_A) > 2.5 or abs(var_acc_B - data_acc_B) > 2.5) 
-				and (abs(var_acc_A - alpha_a_int[i]) > 2.5 or abs(var_acc_B - alpha_b_int[i] > 2.5))):
-            var_acc_A = data_acc_A
-            var_acc_B = data_acc_B
-            var_gyro_A = data_gyro_A
-            var_gyro_B = data_gyro_B
-
-            time.sleep(sleep_time)
-            continue
-
-        i += 1
-        i %= interval
-
-        alpha_a_int[i] = var_acc_A
-        alpha_b_int[i] = var_acc_B
-        omg_a_int[i] = var_gyro_A
-        omg_b_int[i] = var_gyro_B
-
-        var_acc_A = data_acc_A
-        var_acc_B = data_acc_B
-        var_gyro_A = data_gyro_A
-        var_gyro_B = data_gyro_B
+        alpha_a_int[i] = sqrt(pow(acc_1[0],2) + pow(acc_1[1],2) + pow(acc_1[2],2))
+        alpha_b_int[i] = sqrt(pow(acc_2[0],2) + pow(acc_2[1],2) + pow(acc_2[2],2))
+        omg_a_int[i] = sqrt(pow(gyro_1[0],2) + pow(gyro_1[1],2) + pow(gyro_1[2],2))
+        omg_b_int[i] = sqrt(pow(gyro_2[0],2) + pow(gyro_2[1],2) + pow(gyro_2[2],2))
 
         """
             Monitor if people are static or dynamic during the
@@ -219,4 +191,6 @@ with Manager() as manager:
         f.write('\n')
         f.close()
 
+        i += 1
+        i %= interval
         time.sleep(sleep_time)
