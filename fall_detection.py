@@ -20,6 +20,7 @@ with Manager() as manager:
     c.open()
     is_ok = c.write_single_register(0, 1)
     if not is_ok:
+        print("open error")
         c.open()
 
     def exit_handler():
@@ -113,10 +114,10 @@ with Manager() as manager:
             Monitor if people are static or dynamic during the
             present time segment.
         """
-        if (max(alpha_a_int) - min(alpha_a_int) < 0.45 and max(alpha_b_int) - min(alpha_b_int) < 0.45 
-                and max(omg_a_int) - min(omg_a_int) < 70 and max(omg_b_int) - min(omg_b_int) < 70):
-            # static
-            is_ok = c.write_single_register(1, 0)
+        if (max(alpha_a_int) - min(alpha_a_int) > 0.35 and max(alpha_b_int) - min(alpha_b_int) > 0.35 
+                and max(omg_a_int) - min(omg_a_int) > 60 and max(omg_b_int) - min(omg_b_int) > 60):
+            # dynamic
+            is_ok = c.write_single_register(1, 1)
             if not is_ok:
                 c.open()
 
@@ -151,8 +152,8 @@ with Manager() as manager:
 
 
         else:
-            # dynamic
-            is_ok = c.write_single_register(1, 1)
+            # static
+            is_ok = c.write_single_register(1, 0)
             if not is_ok:
                c.open()
 
